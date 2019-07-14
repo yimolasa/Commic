@@ -18,6 +18,7 @@ class get_commic(object):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36'}
 
+    # 获取每卷的title和url
     def get_booklist(self):
         print("book")
         # GET CONTENT FROM INTERNET
@@ -25,7 +26,7 @@ class get_commic(object):
                            headers=self.headers, verify=False)
         html = req.text
 
-        # # GET CONTENT FROM OFFLINE FILE
+        # # GET CONTENT FROM OFFLINE FILE, testing
         # with open('homepage.html', 'rb') as f:
         #     html = f.read()
 
@@ -38,6 +39,7 @@ class get_commic(object):
             self.book.append({'name': each.a.get('title'),
                               'href': each.a.get('href')})
 
+    # 获取每卷中的每页url，并存入json
     def get_pagelist(self):
 
         for each in self.book:
@@ -47,7 +49,7 @@ class get_commic(object):
                                headers=self.headers, verify=False)
             html = req.text
 
-            # # GET CONTENT FROM OFFLINE FILE
+            # # GET CONTENT FROM OFFLINE FILE, testing
             # with open('vol.html', 'rb') as f:
             #     html = f.read()
 
@@ -65,6 +67,7 @@ class get_commic(object):
         with codecs.open(self.bookname+'.json', 'w', encoding="utf-8") as f:
             json.dump(self.book, f, ensure_ascii=False)
 
+    # 获取每页的图片url，并以卷为单位写入josn
     def get_piclist(self):
         with open(self.bookname+'.json', 'rb') as f:
             vols = json.load(f)

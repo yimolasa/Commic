@@ -4,9 +4,31 @@ import sys
 import urllib
 from bs4 import BeautifulSoup
 
-a=[]
-a.append({'a':'a','b':'b'})
-a.append({'a1':'a1','b1':'b1'})
-print(repr(a))
-a[0].update({'c':'c'})
-print(repr(a))
+class b(object):
+    def __init__(self):
+        self.name='b'
+    def runb(self):
+        d=[]
+        c=a(d)
+        c.runa()
+
+        print(repr(d))
+
+class a(object):
+    def __init__(self,d):
+        self.bookname = 'HunterHunter'
+        self.d = d
+    def runa(self):
+        for i in range(5):
+            self.d.append(i)
+        print(self.bookname)
+
+
+
+
+
+
+mainb = b()
+mainb.runb()
+
+        
