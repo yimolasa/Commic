@@ -110,6 +110,9 @@ class get_commic(object):
 
         print('done')
 
+    def download_pic(self):
+        with open(self.bookname+'_thread.json', 'rb') as f:
+            vols = json.load(f)        
 
 # 抓取page线程
 class thread_page(threading.Thread):
@@ -187,8 +190,8 @@ class thread_pic(threading.Thread):
                 self.pics.append([pic[0], x, self.baseurl + picurl])
 
                 # # DOWNLOAD, test
-                # with open(os.path.join(os.path.abspath('.'), pic[0], x + '.json'), 'w', encoding="utf-8") as f:
-                #     f.write(pic[0]+x + self.baseurl + picurl)
+                # with open(os.path.join(os.path.abspath('.'), pic[0],x+'.jpg'), 'wb') as f:
+                #     f.write(requests.get(self.baseurl + picurl).content)
 
             except:
                 pass
@@ -198,4 +201,4 @@ if __name__ == '__main__':
     commic = get_commic()
     # commic.get_booklist()
     # commic.get_pagelist()
-    commic.get_piclist()
+    # commic.get_piclist()

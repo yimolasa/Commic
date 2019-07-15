@@ -3,37 +3,31 @@ import json
 import sys
 import urllib
 from bs4 import BeautifulSoup
-import os
-os.path.abspath('')
-newfolder = os.path.join(os.path.abspath(''),'new folder')
-# os.mkdir(newfolder)
-print('xxxx','abc')
-with open (newfolder+'\\x.txt', 'w' ) as f:
-    f.write('xxxx','abc')
-
-# class b(object):
-#     def __init__(self):
-#         self.name='b'
-#     def runb(self):
-#         d=[]
-#         c=a(d)
-#         c.runa()
-
-#         print(repr(d))
-
-# class a(object):
-#     def __init__(self,d):
-#         self.bookname = 'HunterHunter'
-#         self.d = d
-#     def runa(self):
-#         for i in range(5):
-#             self.d.append(i)
-#         print(self.bookname)
+import os,time, threading
 
 
+# def test(p):
+#     print(p,'start')
+#     time.sleep(5)
+#     print(p,'end')
+# thmax=3
+# list =[]
+# for i in range(50):
+#     list.append(str(i))
 
+# for item in list:
+    
+#     while threading.activeCount() > thmax:
+#         print(threading.activeCount(),'threads')
+#         #time.sleep(1)
 
-# mainb = b()
-# mainb.runb()
+#     t=threading.Thread(target=test,args=item)   
+#     t.start()
+#     t.join()
 
-        
+# print('end')
+x='5'
+#urllib.request.urlretrieve('http://www.manhuadb.com/static/57/510/186_djsfqcne.jpg', 'x3.jpg')
+with open(os.path.join(os.path.abspath('.'), 'new folder',x+'.jpg'), 'wb') as f:
+    f.write(requests.get('http://wx4.sinaimg.cn/large/68f976d7gy1g50xt7kyb2j20n00v6q81.jpg').content)
+
