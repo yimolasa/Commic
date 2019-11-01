@@ -1,9 +1,8 @@
-import requests
-import json
-import sys
-import urllib
-from bs4 import BeautifulSoup
-import os,time, threading
+# import json
+# import sys
+# import urllib
+# from bs4 import BeautifulSoup
+import os #,time, threading
 
 
 # def test(p):
@@ -28,6 +27,11 @@ import os,time, threading
 # print('end')
 x='5'
 #urllib.request.urlretrieve('http://www.manhuadb.com/static/57/510/186_djsfqcne.jpg', 'x3.jpg')
-with open(os.path.join(os.path.abspath('.'), 'new folder',x+'.jpg'), 'wb') as f:
-    f.write(requests.get('http://wx4.sinaimg.cn/large/68f976d7gy1g50xt7kyb2j20n00v6q81.jpg').content)
+
+
+volsname = os.path.join(os.path.abspath('..'),'local test','bac'+'homepage.html')
+print(volsname)
+# with open(os.path.join(os.path.abspath('..'),'local test','homepage.html'), 'rb') as f:
+#             html = f.read()
+#             print(html)
 
