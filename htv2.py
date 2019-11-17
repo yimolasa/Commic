@@ -34,7 +34,7 @@ class get_commic(object):
         # html = req.text
 
         # GET CONTENT FROM OFFLINE FILE, testing
-        with open('homepage.html', 'rb') as f:
+        with open(os.path.join(os.path.abspath('.'),'local test','homepage.html'), 'rb') as f:
             html = f.read()
 
         # GET NAME AND URL OF EACH VOLUME
@@ -74,11 +74,13 @@ class get_commic(object):
         # print(repr(vols))
 
         # DUMP TO JSON     utf-8
-        with codecs.open(self.bookname+'_thread.json', 'w', encoding="utf-8") as f:
+        tempvolname = os.path.join(os.path.abspath('.'),'output',self.bookname+'_thread.json')
+        with codecs.open(tempvolname, 'w', encoding="utf-8") as f:
             json.dump(vols, f, ensure_ascii=False)
 
     def get_piclist(self):
-        with open(self.bookname+'_thread.json', 'rb') as f:
+        tempvolname = os.path.join(os.path.abspath('.'),'output',self.bookname+'_thread.json')
+        with open(tempvolname, 'rb') as f:
             vols = json.load(f)
         global volexitflag
         picqueue = queue.Queue()
@@ -105,13 +107,15 @@ class get_commic(object):
             thread.join()
 
         # DUMP TO JSON     utf-8
-        with codecs.open(self.bookname+'_pic_thread.json', 'w', encoding="utf-8") as f:
+        temppicname = os.path.join(os.path.abspath('.'),'output',self.bookname+'_pic_thread.json')
+        with codecs.open(temppicname, 'w', encoding="utf-8") as f:
             json.dump(pics, f, ensure_ascii=False)
 
         print('done')
 
     def download_pic(self):
-        with open(self.bookname+'_thread.json', 'rb') as f:
+        temppicname = os.path.join(os.path.abspath('.'),'output',self.bookname+'_pic_thread.json')
+        with open(temppicname, 'rb') as f:
             vols = json.load(f)        
 
 # 抓取page线程
@@ -136,7 +140,7 @@ class thread_page(threading.Thread):
                 html = req.text
 
                 # # GET CONTENT FROM OFFLINE FILE, testing
-                # with open('vol.html', 'rb') as f:
+                # with open(os.path.join(os.path.abspath('.'),'local test','vol.html'), 'rb') as f:
                 #     html = f.read()
 
                 # GET URL OF EACH PAGE
