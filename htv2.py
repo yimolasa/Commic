@@ -29,13 +29,13 @@ class get_commic(object):
     def get_booklist(self):
         print("book")
         # # GET CONTENT FROM INTERNET
-        # req = requests.get(url=self.homepage,
-        #                    headers=reqheaders, verify=False)
-        # html = req.text
+        req = requests.get(url=self.homepage,
+                           headers=reqheaders, verify=False)
+        html = req.text
 
         # GET CONTENT FROM OFFLINE FILE, testing
-        with open(os.path.join(os.path.abspath('.'),'local test','homepage.html'), 'rb') as f:
-            html = f.read()
+        # with open(os.path.join(os.path.abspath('.'),'local test','homepage.html'), 'rb') as f:
+        #     html = f.read()
 
         # GET NAME AND URL OF EACH VOLUME
         bf = BeautifulSoup(html, features="lxml")
@@ -203,6 +203,6 @@ class thread_pic(threading.Thread):
 
 if __name__ == '__main__':
     commic = get_commic()
-    # commic.get_booklist()
-    # commic.get_pagelist()
+    commic.get_booklist()
+    commic.get_pagelist()
     # commic.get_piclist()
