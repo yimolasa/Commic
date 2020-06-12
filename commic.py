@@ -2,12 +2,14 @@ from bs4 import BeautifulSoup
 import requests
 import json
 import argparse
+import urllib.request
 # import sys
 # import urllib
 import codecs
 # import queue
 # import threading
 import os
+import time
 # import re
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -27,6 +29,8 @@ bookname = 'HunterHunter'
 bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
 booklist = os.path.join(bookfolder, bookname+'.json')
 
+def dlog():
+    print('fuck holder')
 
 def get_vol():
     req = requests.get(url=homepage, headers=reqheaders, verify=False)
@@ -41,25 +45,23 @@ def get_vol():
         json.dump(book, f, ensure_ascii=False)
 
 
-def get_page(volurl):
+def get_page(volurl, volfolder):
     browser.get(volurl)
     WebDriverWait(browser, 3)
-    img = browser.find_element_by_xpath('//*[@id="all"]/div/div[2]/img')
-    print(img.get_attribute('src'))
-    # import urllib.request
-# urllib.request.urlretrieve(src, "filename.png")
-    # images = browser.find_elements_by_tag_name('img')
-# for image in images:
-#     print(image.get_attribute('src'))
-    #<img class="img-fluid show-pic" src="https://i2.manhuadb.com/static/57/502/11_fevybtvq.jpg">
-    print(volurl)
-    # req = requests.get(url=volurl, headers=reqheaders, verify=False)
-    # html = req.text
-    # bf = BeautifulSoup(html, features="lxml")
-    # print(bf.text)
-    # pgs = bf.find('select', class_='form-control vg-page-selector').find_all('option')
-    # pgnumber = pgs[-1].get('value')
-    # print(pgnumber)
+    pages = browser.find_element_by_xpath(
+        '//*[@id="page-selector"]/option[last()]').get_attribute('value')
+
+    # for i in range(1,int(pages)+1):
+    for i in range(1,3):
+        pagename = os.path.join(volfolder, str(i)+'.jpg')
+        imgurl = browser.find_element_by_xpath('//*[@id="all"]/div/div[2]/img').get_attribute('src')
+        #  with a try catch later & a file existing detect
+        urllib.request.urlretrieve(imgurl, pagename)
+        print(str(i))
+        time.sleep(2)
+        nextpage = browser.find_element_by_xpath('/html/body/div/div[1]/nav/div/a[3]').click()
+        # with a wait
+        time.sleep(2)
 
 
 def main():
@@ -75,7 +77,8 @@ def main():
         volurl = vol['href']
         if not os.path.exists(volfolder):
             os.mkdir(volfolder)
-        get_page(volurl)
+        get_page(volurl, volfolder)
+        
 
 
 if __name__ == '__main__':
@@ -114,3 +117,19 @@ if __name__ == '__main__':
 #         run_update_mode(driver)
 #     else:
 #         raise ValueError(f'Invalid mode {args.mode}')
+
+
+from selenium import webdriver
+
+PROXY = "<HOST:PORT>"
+webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
+    "httpProxy": PROXY,
+    "ftpProxy": PROXY,
+    "sslProxy": PROXY,
+    "proxyType": "MANUAL",
+
+}
+
+with webdriver.Firefox() as driver:
+    # Open URL
+    driver.get("https://selenium.dev")
