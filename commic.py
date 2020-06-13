@@ -13,24 +13,31 @@ import time
 # import re
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 options = webdriver.ChromeOptions()
 browser = webdriver.Chrome(options=options)
 browser.set_window_position(0, 0)
 browser.set_window_size(1024, 768)
-
+wait = WebDriverWait(browser, 10)
 reqheaders = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36'}
 
 base = 'http://www.manhuadb.com'
-homepage = 'http://www.manhuadb.com/manhua/135'  # Hunter * Hunter
 book = []
 bookname = 'HunterHunter'
+homepage = 'http://www.manhuadb.com/manhua/135'  # Hunter * Hunter
 bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
 booklist = os.path.join(bookfolder, bookname+'.json')
+downloadlog = os.path.join(bookfolder, 'dlog.txt')
+errorlog = os.path.join(bookfolder, 'error.txt')
 
-def dlog():
-    print('fuck holder')
+
+def dlog(msg, xlog):
+    with open(xlog, "a", encoding="utf-8") as f:
+        f.write(msg + '\n')
+
 
 def get_vol():
     req = requests.get(url=homepage, headers=reqheaders, verify=False)
@@ -45,57 +52,124 @@ def get_vol():
         json.dump(book, f, ensure_ascii=False)
 
 
-def get_page(volurl, volfolder):
-    browser.get(volurl)
-    WebDriverWait(browser, 3)
-    pages = browser.find_element_by_xpath(
-        '//*[@id="page-selector"]/option[last()]').get_attribute('value')
+def access_vol(lastinfo, vols):
+    if lastinfo:  # continue to downlaod
+        tempinfo = next(
+            (sub for sub in vols if sub['name'] == lastinfo[1]), None)
+        if lastinfo[0]:  # if last page of the volume
+            tempvol = vols.index(tempinfo) + 1
+            todownloadvols = vols[tempvol:]
+            startpage = 1
 
-    # for i in range(1,int(pages)+1):
-    for i in range(1,3):
-        pagename = os.path.join(volfolder, str(i)+'.jpg')
-        imgurl = browser.find_element_by_xpath('//*[@id="all"]/div/div[2]/img').get_attribute('src')
-        #  with a try catch later & a file existing detect
-        urllib.request.urlretrieve(imgurl, pagename)
-        print(str(i))
-        time.sleep(2)
-        nextpage = browser.find_element_by_xpath('/html/body/div/div[1]/nav/div/a[3]').click()
-        # with a wait
-        time.sleep(2)
-
-
-def main():
-    if not os.path.exists(bookfolder):
-        os.mkdir(bookfolder)
-    if not os.path.exists(booklist):
-        get_vol()
-
-    with open(booklist, 'r', encoding="utf-8") as f:
-        vols = json.load(f)
-    for vol in vols:
+        else:
+            tempvol = vols.index(tempinfo)
+            todownloadvols = vols[tempvol:]
+            startpage = int(lastinfo[2]) + 1
+    else:  # fresh start
+        todownloadvols = vols
+        startpage = 1
+    for vol in todownloadvols:
         volfolder = os.path.join(bookfolder, vol['name'])
         volurl = vol['href']
         if not os.path.exists(volfolder):
             os.mkdir(volfolder)
-        get_page(volurl, volfolder)
-        
+        # print(volurl, volfolder, startpage)
+        get_page(volurl, volfolder, startpage)
+        startpage = 1
+
+
+def get_page(volurl, volfolder, startpage):
+    browser.get(volurl)
+    WebDriverWait(browser, 3)
+
+    pages = browser.find_element_by_xpath(
+        '//*[@id="page-selector"]/option[last()]').get_attribute('value')
+    
+    if startpage > 1:
+        browser.find_element_by_xpath('//*[@id="page-selector"]/option['+str(startpage)+']').click()
+
+    for i in range(startpage, int(pages)+1):
+        # for i in range(1,5):
+        pagename = os.path.join(volfolder, str(i)+'.jpg')
+        wait.until(EC.presence_of_element_located((By.ID, "all")))
+        #  with a try catch later & a file existing detect
+        if not os.path.exists(pagename):
+            imgurl = browser.find_element_by_xpath(
+                '//*[@id="all"]/div/div[2]/img').get_attribute('src')
+            try:
+                urllib.request.urlretrieve(imgurl, pagename)
+            except:
+                time.sleep(3)
+                try:
+                    urllib.request.urlretrieve(imgurl, pagename)
+                except:
+                    msg = os.path.basename(
+                        volfolder) + ',' + str(i) + ',' + pages + ',' + imgurl
+                    dlog(msg, errorlog)
+            else:
+                msg = os.path.basename(volfolder) + ',' + \
+                    str(i) + ',' + pages + ',' + imgurl
+                dlog(msg, downloadlog)
+        print(str(i))
+
+        if i == int(pages):
+            break
+        nextpage = browser.find_element_by_xpath(
+            '/html/body/div/div[1]/nav/div/a[3]').click()
+        # with a wait
+        time.sleep(2)
+
+
+def lastbreak(downloadlog):
+    if os.stat(downloadlog).st_size == 0:
+        return(0)
+    else:
+        with open(downloadlog, 'r', encoding="utf-8") as f:
+            for lastline in f:
+                pass
+            lastinfo = lastline.split(',')
+            if lastinfo[1] == lastinfo[2]:
+                lastend = 1
+            else:
+                lastend = 0
+            lastvol = lastinfo[0]
+            lastpage = lastinfo[1]
+            return(lastend, lastvol, lastpage)
+
+
+def main():
+    # prepare necessary folder and files
+    if not os.path.exists(bookfolder):
+        os.mkdir(bookfolder)
+    if not os.path.exists(downloadlog):
+        open(downloadlog, "w+")
+    if not os.path.exists(errorlog):
+        open(errorlog, "w+")
+
+    # get vols's url > json
+    if not os.path.exists(booklist):
+        get_vol()
+
+    # get last downlaod page
+    lastinfo = lastbreak(downloadlog)
+
+    # download in order
+    with open(booklist, 'r', encoding="utf-8") as f:
+        vols = json.load(f)
+    access_vol(lastinfo, vols)
+
+    # for vol in vols:
+    #     volfolder = os.path.join(bookfolder, vol['name'])
+    #     volurl = vol['href']
+    #     if not os.path.exists(volfolder):
+    #         os.mkdir(volfolder)
+    #     get_page(volurl, volfolder)
+    browser.close()
 
 
 if __name__ == '__main__':
     main()
 
-    # if headless:
-    #     option = webdriver.ChromeOptions()
-    #     option.add_argument('headless')
-    #     driver = webdriver.Chrome(chrome_options=option)
-    # else:
-    #     driver = webdriver.Chrome()
-
-    # # 强制声明浏览器长宽为1024*768以适配所有屏幕
-    # driver.set_window_position(0, 0)
-    # driver.set_window_size(1024, 768)
-    # driver_safe_get(driver, _LOGIN_URL)
-    # time.sleep(1)
 
 # def parse_args():
 #     parser = argparse.ArgumentParser()
@@ -119,17 +193,15 @@ if __name__ == '__main__':
 #         raise ValueError(f'Invalid mode {args.mode}')
 
 
-from selenium import webdriver
+# PROXY = "<HOST:PORT>"
+# webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
+#     "httpProxy": PROXY,
+#     "ftpProxy": PROXY,
+#     "sslProxy": PROXY,
+#     "proxyType": "MANUAL",
 
-PROXY = "<HOST:PORT>"
-webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
-    "httpProxy": PROXY,
-    "ftpProxy": PROXY,
-    "sslProxy": PROXY,
-    "proxyType": "MANUAL",
+# }
 
-}
-
-with webdriver.Firefox() as driver:
-    # Open URL
-    driver.get("https://selenium.dev")
+# with webdriver.Firefox() as driver:
+#     # Open URL
+#     driver.get("https://selenium.dev")

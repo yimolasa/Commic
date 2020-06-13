@@ -1,1 +1,4 @@
 output
+local test
+debug.log
+.vscode
