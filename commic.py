@@ -81,10 +81,11 @@ def get_page(volurl, volfolder, startpage):
     # total page in VOL
     pages = browser.find_element_by_xpath(
         '//*[@id="page-selector"]/option[last()]').get_attribute('value')
-    
+
     # jump to start page
     if startpage > 1:
-        browser.find_element_by_xpath('//*[@id="page-selector"]/option['+str(startpage)+']').click()
+        browser.find_element_by_xpath(
+            '//*[@id="page-selector"]/option['+str(startpage)+']').click()
 
     for i in range(startpage, int(pages)+1):
         # for i in range(1,5): #  test
@@ -94,11 +95,12 @@ def get_page(volurl, volfolder, startpage):
         imgurl = browser.find_element_by_xpath(
             '//*[@id="all"]/div/div[2]/img').get_attribute('src')
         try:
-            urllib.request.urlretrieve(imgurl, pagename) # downloading
+            urllib.request.urlretrieve(imgurl, pagename)  # downloading
         except:
             time.sleep(3)
             try:
-                urllib.request.urlretrieve(imgurl, pagename) # one more try if failed
+                # one more try if failed
+                urllib.request.urlretrieve(imgurl, pagename)
             except:
                 msg = os.path.basename(
                     volfolder) + ',' + str(i) + ',' + pages + ',' + imgurl
@@ -118,14 +120,14 @@ def get_page(volurl, volfolder, startpage):
 
 
 def lastbreak(downloadlog):
-    if os.stat(downloadlog).st_size == 0: # if new log, fresh download
+    if os.stat(downloadlog).st_size == 0:  # if new log, fresh download
         return(0)
     else:
         with open(downloadlog, 'r', encoding="utf-8") as f:
             for lastline in f:
                 pass
             lastinfo = lastline.split(',')
-            if lastinfo[1] == lastinfo[2]: # if last page of the vol
+            if lastinfo[1] == lastinfo[2]:  # if last page of the vol
                 lastend = 1
             else:
                 lastend = 0
@@ -133,12 +135,33 @@ def lastbreak(downloadlog):
             lastpage = lastinfo[1]
             return(lastend, lastvol, lastpage)
 
+
+def rdepages():  # download again for the failed pages from error log
+    if os.stat(downloadlog).st_size > 0:  # if new log, fresh download
+        with open(errorlog, 'r+', encoding='utf-8') as f:
+            templog = []
+            for x in f:
+                tinfo = x.split(',')
+                tempfname = os.path.join(bookfolder, tinfo[0], tinfo[1]+'.jpg')
+                try:
+                    urllib.request.urlretrieve(tinfo[3], tempfname)
+                except:
+                    templog.append(x)
+            f.seek(0)
+            f.writelines(templog)
+            f.truncate()
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', action='store_true', help = 'shutdown system')
+    parser.add_argument('-s', action='store_true', help='shutdown system')
+    parser.add_argument('-r', action='store_true',
+                        help='down again from error log')
     return parser.parse_args()
 
+
 def main():
+    args = parse_args()
     # prepare necessary folder and files
     if not os.path.exists(bookfolder):
         os.mkdir(bookfolder)
@@ -155,18 +178,21 @@ def main():
     lastinfo = lastbreak(downloadlog)
 
     # download in order
-    with open(booklist, 'r', encoding="utf-8") as f:
-        vols = json.load(f)
-    access_vol(lastinfo, vols)
+    if args.r:
+        rdepages()
+    else:
+        with open(booklist, 'r', encoding="utf-8") as f:
+            vols = json.load(f)
+        access_vol(lastinfo, vols)
 
     # close browser
     browser.close()
 
     # -s to shutdown
-    args = parse_args()
+
     if args.s:
-        os.system("shutdown /s /t 1") 
+        os.system("shutdown /s /f /t 1")
+
 
 if __name__ == '__main__':
     main()
-
