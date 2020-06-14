@@ -139,6 +139,10 @@ def lastbreak(downloadlog):
             lastpage = lastinfo[1]
             return(lastend, lastvol, lastpage)
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', action='store_true', help = 'shutdown system')
+    return parser.parse_args()
 
 def main():
     # prepare necessary folder and files
@@ -162,6 +166,11 @@ def main():
     access_vol(lastinfo, vols)
 
     browser.close()
+
+    args = parse_args()
+    if args.s:
+        os.system("shutdown /s /t 1") 
+        
 
 
 if __name__ == '__main__':
