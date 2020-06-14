@@ -1,16 +1,11 @@
-from bs4 import BeautifulSoup
 import requests
 import json
 import argparse
 import urllib.request
-# import sys
-# import urllib
 import codecs
-# import queue
-# import threading
 import os
 import time
-# import re
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -92,10 +87,9 @@ def get_page(volurl, volfolder, startpage):
         browser.find_element_by_xpath('//*[@id="page-selector"]/option['+str(startpage)+']').click()
 
     for i in range(startpage, int(pages)+1):
-        # for i in range(1,5):
+        # for i in range(1,5): #  test
         pagename = os.path.join(volfolder, str(i)+'.jpg')
         wait.until(EC.presence_of_element_located((By.ID, "all")))
-        #  with a try catch later & a file existing detect
         # if not os.path.exists(pagename):
         imgurl = browser.find_element_by_xpath(
             '//*[@id="all"]/div/div[2]/img').get_attribute('src')
@@ -165,49 +159,14 @@ def main():
         vols = json.load(f)
     access_vol(lastinfo, vols)
 
+    # close browser
     browser.close()
 
+    # -s to shutdown
     args = parse_args()
     if args.s:
         os.system("shutdown /s /t 1") 
-        
-
 
 if __name__ == '__main__':
     main()
 
-
-# def parse_args():
-#     parser = argparse.ArgumentParser()
-#     # TODO: pass username and password via stdin pipe.
-#     parser.add_argument('-m', '--mode', choices=[_DISCOVER_MODE, _UPDATE_MODE],
-#                         required=True, help="""Discover mode search for new companies.
-#                         Update mode update company detailed information if any.""")
-#     parser.add_argument('-u', '--username', required=True, help='Tianyancha username')
-#     parser.add_argument('-p', '--password', required=True, help='Tianyancha password')
-#     return parser.parse_args()
-
-
-# def main():
-#     args = parse_args()
-#     driver = login(args.username, args.password)
-#     if args.mode == _DISCOVER_MODE:
-#         run_discover_mode(driver)
-#     elif args.mode == _UPDATE_MODE:
-#         run_update_mode(driver)
-#     else:
-#         raise ValueError(f'Invalid mode {args.mode}')
-
-
-# PROXY = "<HOST:PORT>"
-# webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
-#     "httpProxy": PROXY,
-#     "ftpProxy": PROXY,
-#     "sslProxy": PROXY,
-#     "proxyType": "MANUAL",
-
-# }
-
-# with webdriver.Firefox() as driver:
-#     # Open URL
-#     driver.get("https://selenium.dev")
