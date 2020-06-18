@@ -11,18 +11,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-options = webdriver.ChromeOptions()
-browser = webdriver.Chrome(options=options)
-browser.set_window_position(0, 0)
-browser.set_window_size(1024, 768)
-wait = WebDriverWait(browser, 10)
 reqheaders = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36'}
 
+catalog = 'catalog.json'
 base = 'http://www.manhuadb.com'
 book = []
-bookname = 'HunterHunter'
-homepage = 'http://www.manhuadb.com/manhua/135'  # Hunter * Hunter
+bookname = 'Vagabond'
+homepage = 'https://www.manhuadb.com/manhua/324'  # Hunter * Hunter
 bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
 booklist = os.path.join(bookfolder, bookname+'.json')
 downloadlog = os.path.join(bookfolder, 'dlog.txt')
@@ -47,7 +43,13 @@ def get_vol():
         json.dump(book, f, ensure_ascii=False)
 
 
-def access_vol(lastinfo, vols):
+def access_vol():
+    # get last downlaod page
+    lastinfo = lastbreak(downloadlog)
+    # get vols
+    with open(booklist, 'r', encoding="utf-8") as f:
+        vols = json.load(f)
+
     if lastinfo:  # continue to downlaod
         tempinfo = next(
             (sub for sub in vols if sub['name'] == lastinfo[1]), None)
@@ -63,18 +65,26 @@ def access_vol(lastinfo, vols):
     else:  # fresh start
         todownloadvols = vols
         startpage = 1
-    # start to download
+    # start to browser
+    options = webdriver.ChromeOptions()
+    browser = webdriver.Chrome(options=options)
+    browser.set_window_position(0, 0)
+    browser.set_window_size(1024, 768)
+    wait = WebDriverWait(browser, 10)
+    # download vol by vol
     for vol in todownloadvols:
         volfolder = os.path.join(bookfolder, vol['name'])
         volurl = vol['href']
         if not os.path.exists(volfolder):
             os.mkdir(volfolder)
         # print(volurl, volfolder, startpage)
-        get_page(volurl, volfolder, startpage)
+        get_page(browser, wait, volurl, volfolder, startpage)
         startpage = 1
+    # close browser
+    browser.close()
 
 
-def get_page(volurl, volfolder, startpage):
+def get_page(browser, wait, volurl, volfolder, startpage):
     browser.get(volurl)
     WebDriverWait(browser, 3)
 
@@ -152,17 +162,35 @@ def rdepages():  # download again for the failed pages from error log
             f.truncate()
 
 
+def listbook():
+    with open(catalog, 'r', encoding="utf-8") as f:
+        books = json.load(f)
+    for bk in books:
+        print(books.index(bk), bk['bookname'])
+    bkid = int(input('Which one to download:\n'))
+    if bkid < 1 or bkid >= len(books):
+        print('fuck\n')
+        bkid = int(input('Which one to download:\n'))
+    global bookname, homepage
+    bookname = books[bkid]['bookname']
+    homepage = books[bkid]['homepage']  # Hunter * Hunter
+    bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
+    booklist = os.path.join(bookfolder, bookname+'.json')
+    downloadlog = os.path.join(bookfolder, 'dlog.txt')
+    errorlog = os.path.join(bookfolder, 'error.txt')    
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', action='store_true', help='shutdown system')
     parser.add_argument('-r', action='store_true',
                         help='down again from error log')
+    parser.add_argument('-f', action='store_true', help='force update')
+    parser.add_argument('-l', action='store_true', help='list book')
     return parser.parse_args()
 
 
-def main():
-    args = parse_args()
-    # prepare necessary folder and files
+def initx():
     if not os.path.exists(bookfolder):
         os.mkdir(bookfolder)
     if not os.path.exists(downloadlog):
@@ -170,26 +198,23 @@ def main():
     if not os.path.exists(errorlog):
         open(errorlog, "w+")
 
-    # get vols's url > json
-    if not os.path.exists(booklist):
-        get_vol()
 
-    # get last downlaod page
-    lastinfo = lastbreak(downloadlog)
+def main():
+    args = parse_args()
+    initx()  # prepare necessary folder and files
+
+    # listbook()
+    # create vols's url > json.
+    if not os.path.exists(booklist) or args.f:
+        get_vol()
 
     # download in order
     if args.r:
         rdepages()
     else:
-        with open(booklist, 'r', encoding="utf-8") as f:
-            vols = json.load(f)
-        access_vol(lastinfo, vols)
-
-    # close browser
-    browser.close()
+        access_vol()
 
     # -s to shutdown
-
     if args.s:
         os.system("shutdown /s /f /t 1")
 
