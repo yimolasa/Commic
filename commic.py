@@ -17,8 +17,8 @@ reqheaders = {
 catalog = 'catalog.json'
 base = 'http://www.manhuadb.com'
 book = []
-bookname = 'Vagabond'
-homepage = 'https://www.manhuadb.com/manhua/324'  # Hunter * Hunter
+bookname = 'JoJo3'
+homepage = 'https://www.manhuadb.com/manhua/119'  # Hunter * Hunter
 bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
 booklist = os.path.join(bookfolder, bookname+'.json')
 downloadlog = os.path.join(bookfolder, 'dlog.txt')
@@ -99,18 +99,29 @@ def get_page(browser, wait, volurl, volfolder, startpage):
 
     for i in range(startpage, int(pages)+1):
         # for i in range(1,5): #  test
-        pagename = os.path.join(volfolder, str(i)+'.jpg')
-        wait.until(EC.presence_of_element_located((By.ID, "all")))
+        try:
+            pagename = os.path.join(volfolder, str(i)+'.jpg')
+            wait.until(EC.presence_of_element_located((By.ID, "all")))
+        except TimeoutError:
+            time.sleep(10)
+            browser.refresh()
+            pagename = os.path.join(volfolder, str(i)+'.jpg')
+            wait.until(EC.presence_of_element_located((By.ID, "all")))
+
         # if not os.path.exists(pagename):
         imgurl = browser.find_element_by_xpath(
             '//*[@id="all"]/div/div[2]/img').get_attribute('src')
         try:
-            urllib.request.urlretrieve(imgurl, pagename)  # downloading
+            # urllib.request.urlretrieve(imgurl, pagename)  # downloading
+            with open(pagename, 'wb') as f:
+                f.write(requests.get(imgurl).content)
         except:
             time.sleep(3)
             try:
                 # one more try if failed
-                urllib.request.urlretrieve(imgurl, pagename)
+                # urllib.request.urlretrieve(imgurl, pagename)
+                with open(pagename, 'wb') as f:
+                    f.write(requests.get(imgurl).content)
             except:
                 msg = os.path.basename(
                     volfolder) + ',' + str(i) + ',' + pages + ',' + imgurl
@@ -168,10 +179,12 @@ def listbook():
     for bk in books:
         print(books.index(bk), bk['bookname'])
     bkid = int(input('Which one to download:\n'))
+    if bkid == 0:
+        exit()
     if bkid < 1 or bkid >= len(books):
         print('fuck\n')
         bkid = int(input('Which one to download:\n'))
-    global bookname, homepage
+    global bookname, homepage, bookfolder, booklist, downloadlog, errorlog
     bookname = books[bkid]['bookname']
     homepage = books[bkid]['homepage']  # Hunter * Hunter
     bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
@@ -203,7 +216,8 @@ def main():
     args = parse_args()
     initx()  # prepare necessary folder and files
 
-    # listbook()
+    if args.l:
+        listbook()
     # create vols's url > json.
     if not os.path.exists(booklist) or args.f:
         get_vol()
