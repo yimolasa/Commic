@@ -217,10 +217,11 @@ def initx():
 
 def main():
     args = parse_args()
-    initx()  # prepare necessary folder and files
-
+    
     if args.l:
         listbook()
+    initx()  # prepare necessary folder and files    
+    
     # create vols's url > json.
     if not os.path.exists(booklist) or args.f:
         get_vol()
