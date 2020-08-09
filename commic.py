@@ -19,7 +19,8 @@ base = 'http://www.manhuadb.com'
 book = []
 bookname = 'JoJo3'
 homepage = 'https://www.manhuadb.com/manhua/119'  # Hunter * Hunter
-bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
+# bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname) # Win
+bookfolder = os.path.join('/Volumes/Comics', bookname) # Mac
 booklist = os.path.join(bookfolder, bookname+'.json')
 downloadlog = os.path.join(bookfolder, 'dlog.txt')
 errorlog = os.path.join(bookfolder, 'error.txt')
@@ -176,7 +177,7 @@ def rdepages():  # download again for the failed pages from error log
             f.truncate()
 
 
-def listbook():
+def listbook(isMac):
     with open(catalog, 'r', encoding="utf-8") as f:
         books = json.load(f)
     for bk in books:
@@ -190,7 +191,11 @@ def listbook():
     global bookname, homepage, bookfolder, booklist, downloadlog, errorlog
     bookname = books[bkid]['bookname']
     homepage = books[bkid]['homepage']  # Hunter * Hunter
-    bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname)
+    if isMac:
+        bookfolder = os.path.join('/Volumes/Comics', bookname) # Mac
+    else:        
+        bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname) # Win
+    
     booklist = os.path.join(bookfolder, bookname+'.json')
     downloadlog = os.path.join(bookfolder, 'dlog.txt')
     errorlog = os.path.join(bookfolder, 'error.txt')    
@@ -203,6 +208,7 @@ def parse_args():
                         help='down again from error log')
     parser.add_argument('-f', action='store_true', help='force update')
     parser.add_argument('-l', action='store_true', help='list book')
+    parser.add_argument('-m', action='store_true', help='mac')
     return parser.parse_args()
 
 
@@ -217,9 +223,9 @@ def initx():
 
 def main():
     args = parse_args()
-    
+      
     if args.l:
-        listbook()
+        listbook(args.m)
     initx()  # prepare necessary folder and files    
     
     # create vols's url > json.
