@@ -2,4 +2,8 @@ output/*
 local test
 debug.log
 .vscode
+.DS_Store
 mac
+chromedriver*
+lxml*
+.DS_Store
