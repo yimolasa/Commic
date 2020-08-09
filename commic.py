@@ -162,10 +162,13 @@ def rdepages():  # download again for the failed pages from error log
         with open(errorlog, 'r+', encoding='utf-8') as f:
             templog = []
             for x in f:
+                x = x.rstrip()
                 tinfo = x.split(',')
                 tempfname = os.path.join(bookfolder, tinfo[0], tinfo[1]+'.jpg')
                 try:
-                    urllib.request.urlretrieve(tinfo[3], tempfname)
+                    # urllib.request.urlretrieve(tinfo[3], tempfname)
+                    with open(tempfname, 'wb') as w:
+                        w.write(requests.get(tinfo[3]).content)
                 except:
                     templog.append(x)
             f.seek(0)
@@ -214,10 +217,11 @@ def initx():
 
 def main():
     args = parse_args()
-    initx()  # prepare necessary folder and files
-
+    
     if args.l:
         listbook()
+    initx()  # prepare necessary folder and files    
+    
     # create vols's url > json.
     if not os.path.exists(booklist) or args.f:
         get_vol()
