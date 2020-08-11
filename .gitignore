@@ -7,3 +7,4 @@ mac
 chromedriver*
 lxml*
 .DS_Store
+__pycache__

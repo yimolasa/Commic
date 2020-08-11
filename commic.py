@@ -1,3 +1,4 @@
+import constants as const
 import requests
 import json
 import argparse
@@ -11,20 +12,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-reqheaders = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.79 Safari/537.36'}
-
-catalog = 'catalog.json'
-base = 'http://www.manhuadb.com'
+reqheaders = const.reqheaders
+catalog = const.catalog
+base = const.base
 book = []
-bookname = 'JoJo3'
-homepage = 'https://www.manhuadb.com/manhua/119'  # Hunter * Hunter
-# bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname) # Win
-bookfolder = os.path.join('/Volumes/Comics', bookname) # Mac
-booklist = os.path.join(bookfolder, bookname+'.json')
-downloadlog = os.path.join(bookfolder, 'dlog.txt')
-errorlog = os.path.join(bookfolder, 'error.txt')
-
 
 def dlog(msg, xlog):
     with open(xlog, "a", encoding="utf-8") as f:
@@ -87,17 +78,15 @@ def access_vol():
 
 def get_page(browser, wait, volurl, volfolder, startpage):
     browser.get(volurl)
-    WebDriverWait(browser, 3)
-
+    WebDriverWait(browser, 5)
+    
     # total page in VOL
-    pages = browser.find_element_by_xpath(
-        '//*[@id="page-selector"]/option[last()]').get_attribute('value')
+    pages = browser.find_element_by_xpath(const.LastpageXpath).get_attribute('value')
 
     # jump to start page
     if startpage > 1:
-        browser.find_element_by_xpath(
-            '//*[@id="page-selector"]/option['+str(startpage)+']').click()
-
+        browser.find_element_by_xpath(const.StartpageXpath+str(startpage)+']').click()
+    time.sleep(5)
     for i in range(startpage, int(pages)+1):
         # for i in range(1,5): #  test
         try:
@@ -110,8 +99,7 @@ def get_page(browser, wait, volurl, volfolder, startpage):
             wait.until(EC.presence_of_element_located((By.ID, "all")))
 
         # if not os.path.exists(pagename):
-        imgurl = browser.find_element_by_xpath(
-            '//*[@id="all"]/div/div[2]/img').get_attribute('src')
+        imgurl = browser.find_element_by_xpath(const.ImgXpath).get_attribute('src')
         try:
             # urllib.request.urlretrieve(imgurl, pagename)  # downloading
             with open(pagename, 'wb') as f:
@@ -135,8 +123,7 @@ def get_page(browser, wait, volurl, volfolder, startpage):
 
         if i == int(pages):
             break
-        nextpage = browser.find_element_by_xpath(
-            '/html/body/div/div[1]/nav/div/a[3]').click()
+        nextpage = browser.find_element_by_xpath(const.NextpageXpath).click()
         # with a wait
         time.sleep(2)
 
@@ -177,7 +164,7 @@ def rdepages():  # download again for the failed pages from error log
             f.truncate()
 
 
-def listbook(isMac):
+def listbook():
     with open(catalog, 'r', encoding="utf-8") as f:
         books = json.load(f)
     for bk in books:
@@ -188,17 +175,10 @@ def listbook(isMac):
     if bkid < 1 or bkid >= len(books):
         print('fuck\n')
         bkid = int(input('Which one to download:\n'))
-    global bookname, homepage, bookfolder, booklist, downloadlog, errorlog
+    global bookname, homepage
     bookname = books[bkid]['bookname']
     homepage = books[bkid]['homepage']  # Hunter * Hunter
-    if isMac:
-        bookfolder = os.path.join('/Volumes/Comics', bookname) # Mac
-    else:        
-        bookfolder = os.path.join(os.path.abspath('.'), 'output', bookname) # Win
-    
-    booklist = os.path.join(bookfolder, bookname+'.json')
-    downloadlog = os.path.join(bookfolder, 'dlog.txt')
-    errorlog = os.path.join(bookfolder, 'error.txt')    
+ 
 
 
 def parse_args():
@@ -208,11 +188,21 @@ def parse_args():
                         help='down again from error log')
     parser.add_argument('-f', action='store_true', help='force update')
     parser.add_argument('-l', action='store_true', help='list book')
-    parser.add_argument('-m', action='store_true', help='mac')
+    # parser.add_argument('-m', action='store_true', help='mac')
     return parser.parse_args()
 
 
 def initx():
+    global bookfolder, booklist, downloadlog, errorlog
+    if os.name == 'nt':
+        bookfolder = os.path.join('\\\\nas\\Comics\\', bookname) # Win
+    else:        
+        bookfolder = os.path.join('/Volumes/Comics', bookname) # Mac
+    
+    booklist = os.path.join(bookfolder, bookname+'.json')
+    downloadlog = os.path.join(bookfolder, 'dlog.txt')
+    errorlog = os.path.join(bookfolder, 'error.txt')   
+    
     if not os.path.exists(bookfolder):
         os.mkdir(bookfolder)
     if not os.path.exists(downloadlog):
@@ -222,10 +212,14 @@ def initx():
 
 
 def main():
+    global bookname, homepage
     args = parse_args()
       
     if args.l:
-        listbook(args.m)
+        listbook()
+    else:
+        bookname = const.bookname
+        homepage = const.homepage
     initx()  # prepare necessary folder and files    
     
     # create vols's url > json.
