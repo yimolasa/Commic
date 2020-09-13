@@ -8,3 +8,4 @@ chromedriver*
 lxml*
 .DS_Store
 __pycache__
+archive
