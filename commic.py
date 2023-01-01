@@ -81,11 +81,11 @@ def get_page(browser, wait, volurl, volfolder, startpage):
     WebDriverWait(browser, 5)
     
     # total page in VOL
-    pages = browser.find_element_by_xpath(const.LastpageXpath).get_attribute('value')
+    pages = browser.find_element("xpath", const.LastpageXpath).get_attribute('value')
 
     # jump to start page
     if startpage > 1:
-        browser.find_element_by_xpath(const.StartpageXpath+str(startpage)+']').click()
+        browser.find_element("xpath", const.StartpageXpath+str(startpage)+']').click()
     time.sleep(5)
     for i in range(startpage, int(pages)+1):
         # for i in range(1,5): #  test
@@ -99,7 +99,7 @@ def get_page(browser, wait, volurl, volfolder, startpage):
             wait.until(EC.presence_of_element_located((By.ID, "all")))
 
         # if not os.path.exists(pagename):
-        imgurl = browser.find_element_by_xpath(const.ImgXpath).get_attribute('src')
+        imgurl = browser.find_element("xpath", const.ImgXpath).get_attribute('src')
         try:
             # urllib.request.urlretrieve(imgurl, pagename)  # downloading
             with open(pagename, 'wb') as f:
@@ -123,7 +123,7 @@ def get_page(browser, wait, volurl, volfolder, startpage):
 
         if i == int(pages):
             break
-        nextpage = browser.find_element_by_xpath(const.NextpageXpath).click()
+        nextpage = browser.find_element("xpath", const.NextpageXpath).click()
         # with a wait
         time.sleep(2)
 

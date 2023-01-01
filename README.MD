@@ -1,5 +1,12 @@
-## htv2.py
-Download commic, also a sample for multithreading
+## How to run
+```
+# modify constants.py last 2 line, then run
+python commic.py
+
+# modify catalog.json, then run, then pick the id.
+python commic.py -l
+
+```
 
 ## Commic.py
 New version.
@@ -9,6 +16,7 @@ New version.
 * Add "download from last stop page"
 * Add "retry the failed page"
 * Add "shutdown Windows system after completed"
+* Modify "find_element"
 ## Tips
 
 * Find dictionary matching value in list
