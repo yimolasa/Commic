@@ -7,5 +7,5 @@ StartpageXpath = '//*[@id="page-selector"]/option['
 ImgXpath = '//*[@id="all"]/div/div[2]/img'
 # NextpageXpath = '/html/body/div/div[1]/nav/div/a[3]'
 NextpageXpath = '//*[@id="right"]'
-bookname = 'Alice'
-homepage = 'https://www.manhuadb.com/manhua/1247'  # Hunter * Hunter
+bookname = 'Jojo4'
+homepage = 'https://www.manhuadb.com/manhua/124'  # Hunter * Hunter
